@@ -1,0 +1,2 @@
+require(`./ebot`);
+require(`./hltv`);

@@ -1,0 +1,17 @@
+{
+    "3": {
+        "providers": {
+            "hltv": 6435
+        },
+        "config": {
+            "rules": "esl5on5",
+            "password": "joinfirst",
+            "knife_round": true,
+            "production_ready": true,
+            "max_round": 15,
+            "ot_enable": true,
+            "ot_money": 16000,
+            "ot_max_round": 3
+        }
+    }
+}

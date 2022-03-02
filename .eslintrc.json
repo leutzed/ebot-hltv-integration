@@ -1,0 +1,39 @@
+{
+    "env": {
+        "commonjs": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "airbnb-base"
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+        "quotes": ["error", "backtick"],
+        "linebreak-style": ["error", "windows"],
+        "indent": ["error", 4],
+        "comma-dangle": ["error", "never"],
+        "eol-last": ["error", "never"],
+        "arrow-parens": ["error", "as-needed"],
+        "no-use-before-define": ["error"],
+        "radix": ["error", "as-needed"],
+        "no-restricted-syntax": ["error",
+            "FunctionExpression",
+            "WithStatement",
+            "BinaryExpression[operator='of']"
+        ],
+        "max-len": ["error", {
+            "code": 150,
+            "ignoreComments": true
+        }],
+        "keyword-spacing": ["error", {
+            "overrides": {
+                "catch": {
+                    "after": false
+                }
+            }
+        }]
+    }
+}
