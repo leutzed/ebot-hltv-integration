@@ -24,10 +24,7 @@
             "WithStatement",
             "BinaryExpression[operator='of']"
         ],
-        "max-len": ["error", {
-            "code": 250,
-            "ignoreComments": true
-        }],
+        "max-len": ["off"],
         "keyword-spacing": ["error", {
             "overrides": {
                 "catch": {

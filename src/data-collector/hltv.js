@@ -52,7 +52,6 @@ events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
 
         hltvMatches.push(hltvMatchObject);
 
-        // eslint-disable-next-line max-len
         logger.info(`${hltvMatchObject.teams[0].name} vs ${hltvMatchObject.teams[1].name} (ID: ${hltvMatchObject.id}, Internal tournament ID: ${hltvMatchObject.internalTournament.ids[0]} External tournament ID: ${hltvMatchObject.externalTournament.id}`);
         return setTimeout(() => getHltvMatches(matchIndex + 1), 2000);
     }

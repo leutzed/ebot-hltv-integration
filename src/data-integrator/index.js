@@ -30,7 +30,7 @@ function findMatch(hltvMatch, ebotMatches) {
 }
 
 function matchQueryBuilder(match) {
-    // eslint-disable-next-line max-len, no-template-curly-in-string, quotes
+    // eslint-disable-next-line no-template-curly-in-string, quotes
     let query = "INSERT INTO `matchs`(`id`, `ip`, `server_id`, `season_id`, `team_a`, `team_a_flag`, `team_a_name`, `team_b`, `team_b_flag`, `team_b_name`, `status`, `is_paused`, `score_a`, `score_b`, `max_round`, `rules`, `overtime_startmoney`, `overtime_max_round`, `config_full_score`, `config_ot`, `config_streamer`, `config_knife_round`, `config_switch_auto`, `config_auto_change_password`, `config_password`, `config_heatmap`, `config_authkey`, `enable`, `map_selection_mode`, `ingame_enable`, `current_map`, `force_zoom_match`, `identifier_id`, `startdate`, `auto_start`, `auto_start_time`, `created_at`, `updated_at`) VALUES ({id}, {server_ip}, {server_id} ,{season_id}, {team_a}, {team_a_flag}, {team_a_name}, {team_b}, {team_b_flag}, {team_b_name}, {status}, {is_paused}, {score_a}, {score_b}, {max_round}, {rules}, {overtime_startmoney}, {overtime_max_round}, {config_full_score}, {config_ot}, {config_streamer}, {config_knife_round}, {config_switch_auto}, {config_auto_change_password}, {config_password}, {config_heatmap}, {config_authkey}, {enable}, {map_selection_mode}, {ingame_enable}, {current_map}, {force_zoom_match}, {identifier_id}, {startdate}, {auto_start}, {auto_start_time}, {created_at}, {updated_at})";
     const authkey = md5(md5(Math.random() + new Date().getTime() + match.teams[0].name + match.teams[1].name));
     query = query.replace(`{id}`, null)
@@ -75,7 +75,7 @@ function matchQueryBuilder(match) {
 }
 
 function mapQueryBuilder(matchId) {
-    // eslint-disable-next-line max-len, no-template-curly-in-string, quotes
+    // eslint-disable-next-line no-template-curly-in-string, quotes
     let query = "INSERT INTO `maps`(`id`, `match_id`, `map_name`, `score_1`, `score_2`, `current_side`, `status`, `maps_for`, `nb_ot`, `identifier_id`, `tv_record_file`, `created_at`, `updated_at`) VALUES ({id}, {match_id}, {map_name}, {score_1}, {score_2}, {current_side}, {status}, {maps_for}, {nb_ot}, {identifier_id}, {tv_record_file}, {created_at}, {updated_at})";
     query = query.replace(`{id}`, null)
         .replace(`{match_id}`, matchId)
@@ -119,7 +119,6 @@ events.on(`hltvMatchesUpdate`, async hltvMatches => {
             const [dbMap] = await database.query(mapQuery);
             await database.query(`UPDATE \`matchs\` SET \`current_map\` = ${dbMap.insertId} WHERE id = ${dbMatch.insertId}`);
         } else {
-            // eslint-disable-next-line max-len
             logger.info(`Skipping the external match #${hltvMatch.id} (Indernal ID: ${foundMatch[1].id}, External ID: ${hltvMatch.id}, Internal Tournament ID: ${foundMatch[1].internalTournament.ids[0]}, External Tournament ID: ${foundMatch[1].internalTournament.id}, Distance: ${foundMatch[0]})`);
         }
     }
