@@ -22,7 +22,11 @@ function findMatch(hltvMatch, ebotMatches) {
         }
     });
 
-    return requiredMatch;
+    if (requiredMatch && hltvMatch.internalTournament.ids.find(id => requiredMatch[1].season_id === id)) {
+        return requiredMatch;
+    }
+
+    return null;
 }
 
 function matchQueryBuilder(match) {
@@ -32,7 +36,7 @@ function matchQueryBuilder(match) {
     query = query.replace(`{id}`, null)
         .replace(`{server_ip}`, `''`)
         .replace(`{server_id}`, null)
-        .replace(`{season_id}`, match.internalTournament.id)
+        .replace(`{season_id}`, match.internalTournament.ids[0])
         .replace(`{team_a}`, null)
         .replace(`{team_a_flag}`, `'${match.teams[0].flag}'`)
         .replace(`{team_a_name}`, `'${match.teams[0].name}'`)
@@ -90,26 +94,32 @@ function mapQueryBuilder(matchId) {
 }
 
 events.on(`hltvMatchesUpdate`, async hltvMatches => {
+    if (hltvMatches.length <= 0) {
+        logger.info(`There are no upcoming matches`);
+        return;
+    }
+
     logger.info(`Starting to check the eBot database`);
 
-    const uniqueTournamentIds = Array.from(new Set(hltvMatches.map(match => match.internalTournament.id))).join(`,`);
-    const query = `SELECT id, season_id, team_a_name as teamA, team_b_name as teamB FROM matchs WHERE status = 0 AND season_id IN (${uniqueTournamentIds})`; // eslint-disable-line max-len
+    const uniqueTournamentIds = Array.from(new Set(hltvMatches.map(match => match.internalTournament.ids.join(`,`)))).join(`,`);
+    const date = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split(`T`)[0];
+    const query = `SELECT id, season_id, team_a_name as teamA, team_b_name as teamB FROM matchs WHERE status = 0 AND season_id IN (${uniqueTournamentIds}) AND updated_at > '${date}'`; // eslint-disable-line max-len
     const [ebotMatches] = await database.query(query);
 
     for await (const hltvMatch of hltvMatches) {
         const foundMatch = findMatch(hltvMatch, ebotMatches);
 
         if (!foundMatch) {
+            logger.info(`Creating a new match based an external match (External ID: ${hltvMatch.id})`);
+
             const matchQuery = matchQueryBuilder(hltvMatch);
             const [dbMatch] = await database.query(matchQuery);
 
             const mapQuery = mapQueryBuilder(dbMatch.insertId);
             const [dbMap] = await database.query(mapQuery);
             await database.query(`UPDATE \`matchs\` SET \`current_map\` = ${dbMap.insertId} WHERE id = ${dbMatch.insertId}`);
-
-            logger.info(`Created a new match based on an external match (ID: ${dbMatch.insertId}, External ID: ${hltvMatch.id})`);
         } else {
-            logger.info(`Skipped a match with the external ID ${hltvMatch.id} (Distance: ${foundMatch[0]})`);
+            logger.info(`Skipping the match with the external ID ${hltvMatch.id} (Internal ID: ${foundMatch[1].id}, Distance: ${foundMatch[0]})`);
         }
     }
 });

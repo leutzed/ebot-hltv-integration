@@ -3,6 +3,7 @@
         "providers": {
             "hltv": 6435
         },
+        "aliases": [],
         "config": {
             "rules": "esl5on5",
             "password": "joinfirst",

@@ -3,4 +3,7 @@ node_modules
 .env*
 !.env.example
 
+tournaments.json
+!tournaments.example.json
+
 !.gitkeep

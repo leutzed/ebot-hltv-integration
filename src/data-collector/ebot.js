@@ -1,14 +1,21 @@
+const path = require(`path`);
+const fs = require(`fs/promises`);
 const database = require(`../database`);
 const events = require(`../events`);
-const tournamentsFromFile = require(`../../tournaments.json`);
 const logger = require(`../logger`)(`eBot Collector`);
+const databasePath = path.join(__dirname, `../../`, `tournaments.json`);
+
+async function getTournamentsFromFile() {
+    const data = JSON.parse(await fs.readFile(databasePath, `utf-8`));
+    return data;
+}
 
 async function getTournaments() {
-    const tournaments = [];
-    const query = `SELECT id, name, link FROM seasons WHERE active = 1 AND id IN(${Object.keys(tournamentsFromFile).join(`,`)})`;
-
     logger.info(`Starting to get internal tournaments`);
 
+    const tournaments = [];
+    const tournamentsFromFile = await getTournamentsFromFile();
+    const query = `SELECT id, name, link FROM seasons WHERE active = 1 AND id IN(${Object.keys(tournamentsFromFile).join(`,`)})`;
     const [dbTournaments] = await database.query(query);
 
     if (dbTournaments.length > 0) {
@@ -17,7 +24,10 @@ async function getTournaments() {
                 const hltvId = tournamentsFromFile[dbTournament.id].providers.hltv;
 
                 tournaments.push({
-                    tournamentId: dbTournament.id,
+                    tournamentIds: [
+                        dbTournament.id,
+                        ...tournamentsFromFile[dbTournament.id].aliases
+                    ],
                     tournamentName: dbTournament.name,
                     externalTournamentId: hltvId,
                     matchConfig: tournamentsFromFile[dbTournament.id].config
@@ -28,9 +38,9 @@ async function getTournaments() {
         });
     }
 
-    logger.info(`Tournaments: ${tournaments.length}`);
+    logger.info(`Internal tournaments: ${tournaments.length}`);
     events.emit(`ebotTournamentsUpdate`, tournaments);
 }
 
 getTournaments();
-setInterval(() => getTournaments(), 600 * 1000); // 10 min
+setInterval(() => getTournaments(), 900 * 1000); // 15 min

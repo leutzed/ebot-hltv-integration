@@ -5,11 +5,17 @@ const logger = require(`../logger`)(`HLTV Collector`);
 const hltvAddress = `https://www.hltv.org`;
 
 events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
+    if (ebotTournaments.length <= 0) {
+        logger.info(`There are no active eBot tournaments`);
+        return;
+    }
+
     logger.info(`Starting to get external tournaments and matches`);
 
     const tournaments = ebotTournaments;
     const rawhltvMatches = [];
     const hltvMatches = [];
+    const currentDate = new Date().getTime();
 
     async function getHltvMatches(matchIndex = 0) {
         if (!rawhltvMatches[matchIndex]) {
@@ -17,8 +23,8 @@ events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
             return events.emit(`hltvMatchesUpdate`, hltvMatches);
         }
 
-        const teams = [{ name: null, flag: null }, { name: null, flag: null }];
         const page = cheerio.load((await axios.get(`${hltvAddress}/matches/${rawhltvMatches[matchIndex].id}/matches`)).data);
+        const teams = [{ name: null, flag: null }, { name: null, flag: null }];
 
         page(`.teamsBox .team`).each((index, team) => {
             const name = page(team).find(`.teamName`).text();
@@ -30,11 +36,14 @@ events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
         });
 
         if (!teams[0].name || !teams[1].name || !teams[0].flag || !teams[1].flag) {
+            logger.info(`Skipping the match with the external ID ${rawhltvMatches[matchIndex].id} because there are no participants`);
             return setTimeout(() => getHltvMatches(matchIndex + 1), 2000);
         }
 
         const hltvMatchObject = {
             id: rawhltvMatches[matchIndex].id,
+            time: rawhltvMatches[matchIndex].time,
+            format: rawhltvMatches[matchIndex].format,
             internalTournament: rawhltvMatches[matchIndex].internalTournament,
             externalTournament: rawhltvMatches[matchIndex].externalTournament,
             teams,
@@ -44,10 +53,10 @@ events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
         hltvMatches.push(hltvMatchObject);
 
         let logMessage = `${hltvMatchObject.teams[0].name} vs ${hltvMatchObject.teams[1].name} `;
-        logMessage += `(ID: ${hltvMatchObject.id}, External ID: ${hltvMatchObject.externalTournament.id}, `;
-        logMessage += `Internal ID: ${hltvMatchObject.internalTournament.id})`;
-
+        logMessage += `(ID: ${hltvMatchObject.id}, External tournament ID: ${hltvMatchObject.externalTournament.id}, `;
+        logMessage += `Internal tournament ID: ${hltvMatchObject.internalTournament.ids[0]})`;
         logger.info(logMessage);
+
         return setTimeout(() => getHltvMatches(matchIndex + 1), 2000);
     }
 
@@ -59,14 +68,25 @@ events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
         const externalId = ebotTournaments[tournamentIndex].externalTournamentId;
         const page = cheerio.load((await axios.get(`${hltvAddress}/events/${externalId}/matches`)).data);
 
-        if (page(`.upcomingMatchesSection`).eq(0).length > 0) {
-            page(`.upcomingMatchesSection`).eq(0).find(`.upcomingMatch`).each(async (index, hltvMatch) => {
+        if (page(`.upcomingMatch`).length > 0) {
+            page(`.upcomingMatch`).each(async (index, hltvMatch) => { // eslint-disable-line no-shadow
                 const matchId = parseInt(page(hltvMatch).find(`a.match`).attr(`href`).split(`/`)[2]);
                 const tournamentName = page(`.event-hub-title`).text();
+                const format = page(hltvMatch).find(`.matchInfo .matchMeta`).text().toLowerCase();
+                const time = new Date(page(hltvMatch).find(`.matchInfo .matchTime`).data(`unix`));
+                const timeDiff = (time - currentDate) / 1000 / 60 / 60;
+
+                if (timeDiff > 5) {
+                    logger.info(`Skipping the match with the external ID ${matchId} because the match time doesn't match the period`);
+                    return;
+                }
+
                 rawhltvMatches.push({
                     id: matchId,
+                    time,
+                    format: format.includes(`bo`) ? format : `bo1`,
                     internalTournament: {
-                        id: tournaments[tournamentIndex].tournamentId,
+                        ids: tournaments[tournamentIndex].tournamentIds,
                         name: tournaments[tournamentIndex].tournamentName
                     },
                     externalTournament: {
