@@ -1,13 +1,15 @@
 const path = require(`path`);
-const fs = require(`fs/promises`);
+const fs = require(`fs`);
 const database = require(`../database`);
 const events = require(`../events`);
 const logger = require(`../logger`)(`eBot Collector`);
 const databasePath = path.join(__dirname, `../../`, `tournaments.json`);
 
-async function getTournamentsFromFile() {
-    const data = JSON.parse(await fs.readFile(databasePath, `utf-8`));
-    return data;
+function getTournamentsFromFile() {
+    return new Promise(resolve => {
+        const data = fs.readFileSync(databasePath, `utf-8`);
+        resolve(JSON.parse(data));
+    });
 }
 
 async function getTournaments() {
