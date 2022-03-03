@@ -112,12 +112,12 @@ events.on(`hltvMatchesUpdate`, async hltvMatches => {
         if (!foundMatch) {
             logger.info(`Creating a new match based an external match (External ID: ${hltvMatch.id}, Internal Tournament ID: ${foundMatch[1].internalTournament.ids[0]}, External Tournament ID: ${foundMatch[1].internalTournament.id})`);
 
-            /* const matchQuery = matchQueryBuilder(hltvMatch);
+            const matchQuery = matchQueryBuilder(hltvMatch);
             const [dbMatch] = await database.query(matchQuery);
 
             const mapQuery = mapQueryBuilder(dbMatch.insertId);
             const [dbMap] = await database.query(mapQuery);
-            await database.query(`UPDATE \`matchs\` SET \`current_map\` = ${dbMap.insertId} WHERE id = ${dbMatch.insertId}`); */
+            await database.query(`UPDATE \`matchs\` SET \`current_map\` = ${dbMap.insertId} WHERE id = ${dbMatch.insertId}`);
         } else {
             // eslint-disable-next-line max-len
             logger.info(`Skipping the external match #${hltvMatch.id} (Indernal ID: ${foundMatch[1].id}, External ID: ${hltvMatch.id}, Internal Tournament ID: ${foundMatch[1].internalTournament.ids[0]}, External Tournament ID: ${foundMatch[1].internalTournament.id}, Distance: ${foundMatch[0]})`);
