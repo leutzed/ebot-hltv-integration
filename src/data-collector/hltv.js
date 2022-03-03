@@ -36,7 +36,7 @@ events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
         });
 
         if (!teams[0].name || !teams[1].name || !teams[0].flag || !teams[1].flag) {
-            logger.info(`Skipping the match with the external ID ${rawhltvMatches[matchIndex].id} because there are no participants`);
+            logger.info(`Skipping the external match #${rawhltvMatches[matchIndex].id} because there are no participants`);
             return setTimeout(() => getHltvMatches(matchIndex + 1), 2000);
         }
 
@@ -52,11 +52,8 @@ events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
 
         hltvMatches.push(hltvMatchObject);
 
-        let logMessage = `${hltvMatchObject.teams[0].name} vs ${hltvMatchObject.teams[1].name} `;
-        logMessage += `(ID: ${hltvMatchObject.id}, External tournament ID: ${hltvMatchObject.externalTournament.id}, `;
-        logMessage += `Internal tournament ID: ${hltvMatchObject.internalTournament.ids[0]})`;
-        logger.info(logMessage);
-
+        // eslint-disable-next-line max-len
+        logger.info(`${hltvMatchObject.teams[0].name} vs ${hltvMatchObject.teams[1].name} (ID: ${hltvMatchObject.id}, Internal tournament ID: ${hltvMatchObject.internalTournament.ids[0]} External tournament ID: ${hltvMatchObject.externalTournament.id}`);
         return setTimeout(() => getHltvMatches(matchIndex + 1), 2000);
     }
 
@@ -77,7 +74,7 @@ events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
                 const timeDiff = (time - currentDate) / 1000 / 60 / 60;
 
                 if (timeDiff > 5) {
-                    logger.info(`Skipping the match with the external ID ${matchId} because the match time doesn't match the period`);
+                    logger.info(`Skipping the external match #${matchId} (External Tournament ID: ${externalId}) because it does not match the period`);
                     return;
                 }
 

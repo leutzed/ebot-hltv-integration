@@ -103,23 +103,24 @@ events.on(`hltvMatchesUpdate`, async hltvMatches => {
 
     const uniqueTournamentIds = Array.from(new Set(hltvMatches.map(match => match.internalTournament.ids.join(`,`)))).join(`,`);
     const date = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split(`T`)[0];
-    const query = `SELECT id, season_id, team_a_name as teamA, team_b_name as teamB FROM matchs WHERE status = 0 AND season_id IN (${uniqueTournamentIds}) AND updated_at > '${date}'`; // eslint-disable-line max-len
+    const query = `SELECT id, season_id, team_a_name as teamA, team_b_name as teamB FROM matchs WHERE status = 0 AND season_id IN (${uniqueTournamentIds}) AND updated_at > '${date}'`;
     const [ebotMatches] = await database.query(query);
 
     for await (const hltvMatch of hltvMatches) {
         const foundMatch = findMatch(hltvMatch, ebotMatches);
 
         if (!foundMatch) {
-            logger.info(`Creating a new match based an external match (External ID: ${hltvMatch.id})`);
+            logger.info(`Creating a new match based an external match (External ID: ${hltvMatch.id}, Internal Tournament ID: ${foundMatch[1].internalTournament.ids[0]}, External Tournament ID: ${foundMatch[1].internalTournament.id})`);
 
-            const matchQuery = matchQueryBuilder(hltvMatch);
+            /* const matchQuery = matchQueryBuilder(hltvMatch);
             const [dbMatch] = await database.query(matchQuery);
 
             const mapQuery = mapQueryBuilder(dbMatch.insertId);
             const [dbMap] = await database.query(mapQuery);
-            await database.query(`UPDATE \`matchs\` SET \`current_map\` = ${dbMap.insertId} WHERE id = ${dbMatch.insertId}`);
+            await database.query(`UPDATE \`matchs\` SET \`current_map\` = ${dbMap.insertId} WHERE id = ${dbMatch.insertId}`); */
         } else {
-            logger.info(`Skipping the match with the external ID ${hltvMatch.id} (Internal ID: ${foundMatch[1].id}, Distance: ${foundMatch[0]})`);
+            // eslint-disable-next-line max-len
+            logger.info(`Skipping the external match #${hltvMatch.id} (Indernal ID: ${foundMatch[1].id}, External ID: ${hltvMatch.id}, Internal Tournament ID: ${foundMatch[1].internalTournament.ids[0]}, External Tournament ID: ${foundMatch[1].internalTournament.id}, Distance: ${foundMatch[0]})`);
         }
     }
 });
