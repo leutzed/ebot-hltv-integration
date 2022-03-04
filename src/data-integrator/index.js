@@ -110,7 +110,7 @@ events.on(`hltvMatchesUpdate`, async hltvMatches => {
         const foundMatch = findMatch(hltvMatch, ebotMatches);
 
         if (!foundMatch) {
-            logger.info(`Creating a new match based an external match (External ID: ${hltvMatch.id}, Internal Tournament ID: ${foundMatch[1].internalTournament.ids[0]}, External Tournament ID: ${foundMatch[1].internalTournament.id})`);
+            logger.info(`Creating a new match based on an external ID ${hltvMatch.id}`);
 
             const matchQuery = matchQueryBuilder(hltvMatch);
             const [dbMatch] = await database.query(matchQuery);
@@ -119,7 +119,7 @@ events.on(`hltvMatchesUpdate`, async hltvMatches => {
             const [dbMap] = await database.query(mapQuery);
             await database.query(`UPDATE \`matchs\` SET \`current_map\` = ${dbMap.insertId} WHERE id = ${dbMatch.insertId}`);
         } else {
-            logger.info(`Skipping the external match #${hltvMatch.id} (Indernal ID: ${foundMatch[1].id}, External ID: ${hltvMatch.id}, Internal Tournament ID: ${foundMatch[1].internalTournament.ids[0]}, External Tournament ID: ${foundMatch[1].internalTournament.id}, Distance: ${foundMatch[0]})`);
+            logger.info(`Skipping an external match with ID ${hltvMatch.id} since the match was found with a distance of ${foundMatch[0]} (Match ID: ${foundMatch[1].id})`);
         }
     }
 });
