@@ -7,7 +7,7 @@ const logger = require(`../logger`)(`Proxy Server`);
 const app = express();
 dotenv.config({ path: path.join(__dirname, `./.env`) });
 
-app.use(`*`, proxy(process.env.PROXY_DESTINATION || `https://hltv.org`, {
+app.use(`*`, proxy(process.env.PROXY_HOST, {
     proxyReqPathResolver: req => req.originalUrl
 }));
 
