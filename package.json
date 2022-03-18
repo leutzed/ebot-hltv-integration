@@ -26,8 +26,6 @@
         "axios": "^0.26.0",
         "cheerio": "^1.0.0-rc.10",
         "dotenv": "^16.0.0",
-        "express": "^4.17.3",
-        "express-http-proxy": "^1.6.3",
         "fast-levenshtein": "^3.0.0",
         "md5": "^2.3.0",
         "mysql2": "^2.3.3",
