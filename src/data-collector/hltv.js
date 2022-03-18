@@ -2,7 +2,7 @@ const axios = require(`axios`);
 const cheerio = require(`cheerio`);
 const events = require(`../events`);
 const logger = require(`../logger`)(`HLTV Collector`);
-const hltvAddress = `https://www.hltv.org`;
+const hltvAddress = `https://hltv.org`;
 
 events.on(`ebotTournamentsUpdate`, async ebotTournaments => {
     if (ebotTournaments.length <= 0) {
